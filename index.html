@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>실생활 열역학 현상 & P-V 그래프 시뮬레이터</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts (Pretendard-like clean Korean typography) -->
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX Math Rendering CDNs for clean math equations -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .math-var {
+            font-family: 'KaTeX_Math', 'Times New Roman', serif;
+            font-style: italic;
+        }
+        canvas {
+            touch-action: none;
+        }
+        .tab-active {
+            background-color: #2563eb !important;
+            color: #ffffff !important;
+            border-color: #3b82f6 !important;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between overflow-x-hidden">
+
+    <!-- Header Section -->
+    <header class="glass-panel sticky top-0 z-50 px-4 py-3 border-b border-slate-800">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-red-600 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-amber-500/20">
+                    <i class="fa-solid fa-fire-burner"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight tracking-wide text-white flex items-center gap-2">
+                        열역학 제1법칙과 실생활 현상
+                        <span class="text-xs font-normal px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">고2 역학과 에너지</span>
+                    </h1>
+                </div>
+            </div>
+
+            <!-- Top Math Badge -->
+            <div class="hidden md:flex items-center gap-3 bg-slate-900/90 px-4 py-1.5 rounded-xl border border-slate-800">
+                <span class="text-xs text-slate-400 font-medium">열역학 제1법칙 :</span>
+                <span id="headerEquation" class="text-sm font-bold text-amber-400 font-mono">
+                    \( Q = \Delta U + W \)
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs for 5 Real-world Modules -->
+    <nav class="max-w-7xl mx-auto w-full px-3 pt-3">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 bg-slate-900/60 p-1.5 rounded-2xl border border-slate-800/80">
+            <button id="tabCooker" onclick="switchTab('cooker')" class="tab-btn px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 bg-slate-800 text-slate-300 hover:bg-slate-700">
+                <i class="fa-solid fa-kitchen-set text-amber-400"></i>
+                <span>1. 압력솥</span>
+            </button>
+            <button id="tabSoda" onclick="switchTab('soda')" class="tab-btn px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 bg-slate-800 text-slate-300 hover:bg-slate-700">
+                <i class="fa-solid fa-bottle-droplet text-cyan-400"></i>
+                <span>2. 탄산음료 뚜껑</span>
+            </button>
+            <button id="tabCloud" onclick="switchTab('cloud')" class="tab-btn px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 bg-slate-800 text-slate-300 hover:bg-slate-700">
+                <i class="fa-solid fa-cloud-sun text-sky-400"></i>
+                <span>3. 구름 생성</span>
+            </button>
+            <button id="tabFoehn" onclick="switchTab('foehn')" class="tab-btn px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 bg-slate-800 text-slate-300 hover:bg-slate-700">
+                <i class="fa-solid fa-mountain-sun text-orange-400"></i>
+                <span>4. 높새바람</span>
+            </button>
+            <button id="tabIgniter" onclick="switchTab('igniter')" class="tab-btn px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 bg-slate-800 text-slate-300 hover:bg-slate-700">
+                <i class="fa-solid fa-volcano text-red-400"></i>
+                <span>5. 불꽃 점화기</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="max-w-7xl mx-auto w-full p-3 md:p-4 grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1">
+
+        <!-- Dual Canvas Section (Cols 8) -->
+        <section class="lg:col-span-8 flex flex-col gap-4">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                <!-- Left Canvas: Real-World Visual Animation -->
+                <div class="glass-panel p-3 rounded-2xl flex flex-col relative">
+                    <div class="flex justify-between items-center mb-2 px-1">
+                        <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                            <i id="realIcon" class="fa-solid fa-flask text-amber-400"></i>
+                            <span id="realTitle">실생활 현상 시각화</span>
+                        </span>
+                        <span id="realBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+                            대기 중
+                        </span>
+                    </div>
+                    <div class="w-full aspect-square bg-slate-950/90 rounded-xl border border-slate-800 relative overflow-hidden flex items-center justify-center">
+                        <canvas id="realCanvas" class="w-full h-full block"></canvas>
+                    </div>
+                </div>
+
+                <!-- Right Canvas: Real-time P-V Diagram -->
+                <div class="glass-panel p-3 rounded-2xl flex flex-col relative">
+                    <div class="flex justify-between items-center mb-2 px-1">
+                        <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                            <i class="fa-solid fa-chart-line text-blue-400"></i>
+                            <span>실시간 P-V 그래프</span>
+                        </span>
+                        <div class="flex items-center gap-2">
+                            <label class="flex items-center gap-1.5 text-[10px] text-slate-300 bg-slate-900/90 px-2 py-0.5 rounded-full border border-slate-700 cursor-pointer hover:bg-slate-800 transition select-none">
+                                <input type="checkbox" id="chkShowIsotherms" onchange="renderPVDiagram()" class="w-3 h-3 accent-amber-500 rounded">
+                                <span>등온선 표시</span>
+                            </label>
+                            <span id="pvProcessName" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                                등적 과정 (\(\Delta V = 0\))
+                            </span>
+                        </div>
+                    </div>
+                    <div class="w-full aspect-square bg-slate-950/90 rounded-xl border border-slate-800 relative overflow-hidden flex items-center justify-center">
+                        <canvas id="pvCanvas" class="w-full h-full block"></canvas>
+                        <!-- Floating legend -->
+                        <div class="absolute bottom-2 left-2 bg-slate-900/90 backdrop-blur px-2 py-1 rounded text-[9px] text-slate-400 border border-slate-800 flex gap-2">
+                            <span class="flex items-center gap-1"><span class="w-2 h-0.5 bg-amber-400 inline-block"></span> 등온선</span>
+                            <span class="flex items-center gap-1"><span class="w-2 h-0.5 bg-blue-500 inline-block"></span> 상태 변화 경로</span>
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 bg-blue-400/30 border border-blue-400 inline-block"></span> 면적 = 일(<span class="math-var">W</span>)</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Bottom Simulation Controls Bar -->
+            <div class="glass-panel p-3 rounded-2xl flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2 flex-1 min-w-[240px]">
+                    <button id="btnAction" class="flex-1 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30">
+                        <i id="iconAction" class="fa-solid fa-play"></i>
+                        <span id="txtAction">현상 실행하기</span>
+                    </button>
+                    <button id="btnReset" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs border border-slate-700 transition" title="초기화">
+                        <i class="fa-solid fa-rotate-left mr-1"></i> 초기화
+                    </button>
+                </div>
+
+                <!-- Module-Specific Parameters -->
+                <div id="moduleControls" class="flex items-center gap-3 bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex-wrap text-xs">
+                    <!-- Dynamic slider / selector injected by JS -->
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Right Panel: First Law Data & Physics Explanation (Cols 4) -->
+        <section class="lg:col-span-4 flex flex-col gap-4">
+
+            <!-- Thermodynamics First Law Balance Card -->
+            <div class="glass-panel p-4 rounded-2xl space-y-3">
+                <h2 class="text-sm font-semibold text-slate-200 flex items-center justify-between border-b border-slate-800 pb-2">
+                    <span class="flex items-center gap-2">
+                        <i class="fa-solid fa-scale-balanced text-amber-400"></i>
+                        열역학 제1법칙 에너지 증감
+                    </span>
+                    <span class="text-[11px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                        \( Q = \Delta U + W \)
+                    </span>
+                </h2>
+
+                <!-- Dynamic Energy Cards Container per Tab -->
+                <div id="energyCardsContainer">
+                    <!-- Standard 3 Quantities Cards with Sign Badges -->
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div class="p-2.5 rounded-xl bg-slate-900/90 border border-red-500/30">
+                            <div class="text-[10px] text-slate-400">열량 (\(Q\))</div>
+                            <div id="cardQVal" class="text-xs font-extrabold text-red-400 font-mono my-1">+116 J</div>
+                            <div id="cardQBadge" class="text-[9px] px-1 py-0.5 rounded bg-red-500/20 text-red-300 font-bold">
+                                열 흡수 (+)
+                            </div>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-slate-900/90 border border-amber-500/30">
+                            <div class="text-[10px] text-slate-400">내부에너지 (\(\Delta U\))</div>
+                            <div id="cardUVal" class="text-xs font-extrabold text-amber-400 font-mono my-1">+116 J</div>
+                            <div id="cardUBadge" class="text-[9px] px-1 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">
+                                온도 상승 (+)
+                            </div>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-slate-900/90 border border-blue-500/30">
+                            <div class="text-[10px] text-slate-400">한 일 (\(W\))</div>
+                            <div id="cardWVal" class="text-xs font-extrabold text-blue-400 font-mono my-1">0 J</div>
+                            <div id="cardWBadge" class="text-[9px] px-1 py-0.5 rounded bg-slate-800 text-slate-400 font-bold">
+                                일 안 함 (0)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-time Macroscopic State Display (P, V, T) -->
+                <div class="grid grid-cols-3 gap-2 pt-1 border-t border-slate-800/80 text-center font-mono bg-slate-900/50 p-2 rounded-xl text-xs">
+                    <div>
+                        <span class="text-[10px] text-slate-400 block">압력 (\(P\))</span>
+                        <span id="valP" class="font-bold text-slate-200">100 kPa</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block">부피 (\(V\))</span>
+                        <span id="valV" class="font-bold text-slate-200">10.0 L</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block">온도 (\(T\))</span>
+                        <span id="valT" class="font-bold text-slate-200">300 K</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- High School Physics Principle Explanation Box -->
+            <div class="glass-panel p-4 rounded-2xl flex-1 flex flex-col justify-between space-y-3 border border-slate-700/60">
+                <div>
+                    <h3 id="explainTitle" class="text-xs font-bold text-amber-400 flex items-center gap-2 mb-2">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                        <span>교과서 원리 해설</span>
+                    </h3>
+                    <p id="explainContent" class="text-xs text-slate-300 leading-relaxed space-y-2">
+                        <!-- Dynamic explanation injected by JS -->
+                    </p>
+                </div>
+
+                <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800/80 text-[11px] text-slate-400 flex items-center gap-2">
+                    <i class="fa-solid fa-lightbulb text-amber-400 text-sm"></i>
+                    <span id="explainTip">핵심 포인트: 압력솥은 부피 변화가 없으므로 외부에 일을 하지 않습니다 (\(W = 0\)).</span>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <script>
+        // Ideal gas constant reference (For visual scaling: P in kPa, V in L)
+        const R = 8.314;
+
+        // Central Simulation State
+        const state = {
+            currentTab: 'cooker', // 'cooker', 'soda', 'cloud', 'foehn', 'igniter'
+            isPlaying: false,
+            progress: 0,       // 0.0 to 1.0
+            speed: 1.0,
+            foehnPeakReached: false, // Flag for 2-stage Foehn wind pause
+            igniterMode: 'rapid', // 'rapid' (adiabatic Q=0) or 'slow' (heat loss Q<0)
+            
+            // Gas Macroscopic State Variables
+            P: 100, // kPa
+            V: 10,  // L
+            T: 300, // K
+            Q: 0,
+            dU: 0,
+            W: 0,
+            
+            // Calibrated Physics Parameters per Module
+            cooker: { P_start: 100, P_end: 131, V: 10, T_start: 300, T_end: 393 }, // 27°C (300K) -> 120°C (393K)
+            soda: { P_start: 300, P_end: 100, V_start: 8, V_end: 17.5, T_start: 293, T_end: 214 }, // 20°C (293K) -> -59°C (214K)
+            cloud: { height_max: 2500, T_start: 298, T_dew: 285, T_end: 268, V_start: 10, V_end: 13, P_start: 100, P_end: 69 }, // 25°C -> 12°C (Dew) -> -5°C
+            foehn: { mountain_h: 1500, T_start: 293, T_peak: 283, T_west: 298, V_start: 10, V_peak: 12.07, V_west: 10.17, P_sea: 100, P_peak: 80 }, // East 20°C -> Peak 10°C -> West 25°C
+            igniter: { mode: 'rapid', P_start: 100, V_start: 12, V_min: 2.0, T_start: 293, T_rapid_end: 600, T_slow_end: 320, T_ignite: 520 } // 20°C -> 327°C (Ignites at 247°C)
+        };
+
+        // Canvas Context References
+        const realCanvas = document.getElementById('realCanvas');
+        const realCtx = realCanvas.getContext('2d');
+        const pvCanvas = document.getElementById('pvCanvas');
+        const pvCtx = pvCanvas.getContext('2d');
+
+        // Gas / Cloud / Flame Particles Array
+        const particles = [];
+        for (let i = 0; i < 40; i++) {
+            particles.push({
+                x: Math.random(),
+                y: Math.random(),
+                vx: (Math.random() - 0.5) * 2,
+                vy: (Math.random() - 0.5) * 2,
+                size: Math.random() * 3 + 2
+            });
+        }
+
+        // --- Module Data Configuration with Calibrated Physics Descriptions ---
+        const moduleSpecs = {
+            cooker: {
+                title: "1. 압력솥 (등적 가열 과정)",
+                icon: "fa-kitchen-set",
+                iconColor: "text-amber-400",
+                badge: "등적 과정 (\\(\\Delta V = 0\\))",
+                processType: "isochoric",
+                actionTxt: "가열하기",
+                equation: "Q = \\Delta U \\quad (W = 0)",
+                explain: `
+                    <b>압력솥은 대표적인 등적 과정(Isochoric Process)입니다.</b><br>
+                    솥이 단단히 닫혀 있어 부피가 일정한 상태(\\( \\Delta V = 0 \\))를 유지하므로, 외부에 하는 일은 <b>\\( W = 0 \\)</b>입니다.<br>
+                    따라서 외부에서 가해준 열량(\\( Q \\))이 모두 기체의 내부에너지 증가(\\( \\Delta U \\))로 전환됩니다. 내부 압력이 상승하여 물이 약 \\( 120^\\circ\\text{C} \\) (\\( 393\\text{K} \\))의 높은 온도에서 끓으므로 밥이 훨씬 빠르게 익습니다.
+                `,
+                tip: "부피 변화가 없으므로(\\( \\Delta V = 0 \\)) P-V 그래프에서 수직선(\\( W = 0 \\))으로 나타납니다."
+            },
+            soda: {
+                title: "2. 탄산음료 뚜껑 개봉 (단열 팽창)",
+                icon: "fa-bottle-droplet",
+                iconColor: "text-cyan-400",
+                badge: "단열 팽창 (\\(Q = 0, W > 0\\))",
+                processType: "adiabatic_expansion",
+                actionTxt: "뚜껑 열기",
+                equation: "0 = \\Delta U + W \\implies \\Delta U = -W",
+                explain: `
+                    <b>병뚜껑을 여는 순간은 매우 순식간이어서 열 출입이 없는 단열 과정(Adiabatic Process)입니다.</b><br>
+                    병 내부의 고압(\\(\\approx 300\\text{kPa}\\)) 이산화탄소 기체가 밖으로 나오며 외부에 일(\\( W > 0 \\))을 합니다.<br>
+                    열 교환 없이(\\(= 0\\)) 일을 하므로 기체의 내부에너지가 감소하여 온도가 약 \\( -59^\\circ\\text{C} \\) (\\( 214\\text{K} \\))까지 급격히 하강합니다. 이로 인해 입구 주변 수증기가 단열 냉각되어 하얀 김(수증기 응결)이 생깁니다.
+                `,
+                tip: "기체가 외부에 일(\\( W > 0 \\))을 하여 내부에너지가 감소(\\( \\Delta U < 0 \\))하므로 온도가 영하로 떨어집니다."
+            },
+            cloud: {
+                title: "3. 구름 생성과 상승 기류 (단열 팽창)",
+                icon: "fa-cloud-sun",
+                iconColor: "text-sky-400",
+                badge: "단열 팽창 & 이슬점 도달",
+                processType: "adiabatic_expansion",
+                actionTxt: "공기 상승시키기",
+                equation: "0 = \\Delta U + W \\implies \\Delta U = -W",
+                explain: `
+                    <b>지표면에서 가열된 공기 덩어리가 상승할 때 단열 팽창이 일어납니다.</b><br>
+                    상공으로 올라갈수록 기압이 낮아지므로 공기 덩어리가 부풀어 오르며 주변에 일(\\( W > 0 \\))을 합니다.<br>
+                    외부와의 열 교환 없이(\\( Q = 0 \\)) 일을 하므로 온도가 감소하게 되며, 상승 응결 고도에서 이슬점(\\( 12^\\circ\\text{C} = 285\\text{K} \\))에 도달하면 수증기가 응결하여 뭉게구름이 만들어집니다.
+                `,
+                tip: "상승하는 공기 덩어리는 부피(\\( V \\))가 커지면서 온도가 낮아져(\\(\\Delta T < 0\\)) 구름이 됩니다."
+            },
+            foehn: {
+                title: "4. 높새바람과 푄 현상 (단열 압축)",
+                icon: "fa-mountain-sun",
+                iconColor: "text-orange-400",
+                badge: "단열 압축 (\\(Q = 0, W < 0\\))",
+                processType: "adiabatic_compression",
+                actionTxt: "1단계: 정상으로 상승 (단열 팽창)",
+                equation: "0 = \\Delta U + (-W) \\implies \\Delta U = W_{\\text{받은 일}}",
+                explain: `
+                    <b>태백산맥을 넘어 영서 지방으로 내려오는 높새바람은 단열 압축을 받습니다.</b><br>
+                    동해의 습한 공기(\\(= 20^\\circ\\text{C}\\))가 산을 올라가며 비를 내린 후(\\(= 10^\\circ\\text{C}\\)), 건조해진 공기가 산맥 서쪽 경사면을 따라 하강합니다.<br>
+                    하강할수록 기압이 높아져 공기 덩어리가 단열 압축(\\(= -W > 0\\))을 받으며, 받은 일만큼 온도가 급격히 상승하여 고온 건조한 바람(\\(= 25^\\circ\\text{C}\\))이 불게 됩니다.
+                `,
+                tip: "공기 덩어리가 하강하면서 기압에 의해 압축(\\(\\Delta V < 0\\))되어 온도가 상승(\\(\\Delta T > 0\\))합니다."
+            },
+            igniter: {
+                title: "5. 불꽃 점화기 (단열 압축 발화)",
+                icon: "fa-volcano",
+                iconColor: "text-red-400",
+                badge: "단열 압축 (\\(Q = 0, W \\ll 0\\))",
+                processType: "adiabatic_compression",
+                actionTxt: "피스톤 빠르게 누르기",
+                equation: "0 = \\Delta U + (-W) \\implies \\Delta U = W_{\\text{받은 일}} \\gg 0",
+                explain: `
+                    <b>압축 용기 내의 피스톤을 매우 빠르게 누르면 강한 단열 압축이 일어납니다.</b><br>
+                    열이 빠져나갈 틈도 없이 외부에서 순식간에 강한 일(\\( W \\ll 0 \\))을 기체에 해줍니다.<br>
+                    열 출입이 없으므로(\\( Q = 0 \\)) 받은 일이 모두 내부에너지 증가로 들어가 내부 온도가 약 \\( 327^\\circ\\text{C} \\) (\\( 600\\text{K} \\))까지 치솟아 솜의 발화점(\\(\\approx 247^\\circ\\text{C}\\))을 넘어 순간 발화합니다.
+                `,
+                tip: "빠른 압축으로 외부에서 해준 일(\\( -W \\))이 내부 온도(\\( T \\))를 발화점까지 폭발적으로 올립니다."
+            }
+        };
+
+        // --- Render Functions for Real-world Canvas ---
+
+        function renderCookerScene(progress) {
+            const width = realCanvas.width;
+            const height = realCanvas.height;
+            realCtx.clearRect(0, 0, width, height);
+
+            const cx = width / 2;
+            const cy = height / 2 + 20;
+
+            // Stove Flame
+            if (progress > 0) {
+                const flameH = 20 + Math.sin(Date.now() * 0.02) * 5 + progress * 20;
+                const grad = realCtx.createLinearGradient(cx, cy + 90, cx, cy + 90 + flameH);
+                grad.addColorStop(0, 'rgba(239, 68, 68, 0.9)');
+                grad.addColorStop(0.5, 'rgba(245, 158, 11, 0.8)');
+                grad.addColorStop(1, 'rgba(253, 224, 71, 0)');
+
+                realCtx.fillStyle = grad;
+                realCtx.beginPath();
+                realCtx.ellipse(cx, cy + 90 + flameH / 2, 60, flameH / 2, 0, 0, Math.PI * 2);
+                realCtx.fill();
+            }
+
+            // Cooker Body Outer
+            realCtx.fillStyle = '#475569';
+            realCtx.strokeStyle = '#94a3b8';
+            realCtx.lineWidth = 4;
+
+            realCtx.beginPath();
+            realCtx.roundRect(cx - 90, cy - 60, 180, 140, [0, 0, 20, 20]);
+            realCtx.fill();
+            realCtx.stroke();
+
+            // Inner Chamber
+            realCtx.fillStyle = '#0f172a';
+            realCtx.fillRect(cx - 80, cy - 50, 160, 120);
+
+            // Water and Rice at bottom
+            realCtx.fillStyle = '#1e3a8a';
+            realCtx.fillRect(cx - 80, cy + 30, 160, 40);
+
+            // Rice Grains
+            const riceColor = progress > 0.8 ? '#fef08a' : '#f8fafc';
+            realCtx.fillStyle = riceColor;
+            for (let rx = -70; rx <= 70; rx += 15) {
+                realCtx.beginPath();
+                realCtx.arc(cx + rx, cy + 50 + Math.sin(rx) * 3, 4, 0, Math.PI * 2);
+                realCtx.fill();
+            }
+
+            // Lid with Pressure Weight Valve
+            realCtx.fillStyle = '#334155';
+            realCtx.fillRect(cx - 100, cy - 75, 200, 20);
+
+            // Weight Valve
+            const valveY = cy - 85 - (progress > 0.8 ? Math.sin(Date.now() * 0.03) * 3 : 0);
+            realCtx.fillStyle = '#f59e0b';
+            realCtx.fillRect(cx - 10, valveY, 20, 15);
+
+            // Steam particles bouncing inside
+            const speedFactor = 1 + progress * 2.5;
+            realCtx.fillStyle = 'rgba(147, 197, 253, 0.8)';
+            particles.forEach(p => {
+                p.x += p.vx * 0.005 * speedFactor;
+                p.y += p.vy * 0.005 * speedFactor;
+
+                if (p.x < 0 || p.x > 1) p.vx *= -1;
+                if (p.y < 0 || p.y > 1) p.vy *= -1;
+
+                const px = cx - 70 + p.x * 140;
+                const py = cy - 40 + p.y * 65;
+
+                realCtx.beginPath();
+                realCtx.arc(px, py, 3, 0, Math.PI * 2);
+                realCtx.fill();
+            });
+
+            // Steam escaping top valve if cooked
+            if (progress > 0.8) {
+                realCtx.fillStyle = 'rgba(241, 245, 249, 0.4)';
+                for (let s = 0; s < 5; s++) {
+                    const sy = valveY - 10 - s * 8 - (Date.now() * 0.05) % 20;
+                    realCtx.beginPath();
+                    realCtx.arc(cx + (s % 2 === 0 ? 4 : -4), sy, 5 + s * 2, 0, Math.PI * 2);
+                    realCtx.fill();
+                }
+            }
+
+            // Temperature / Pressure Gauge Display
+            realCtx.fillStyle = '#f8fafc';
+            realCtx.font = 'bold 12px Pretendard';
+            realCtx.fillText(`압력: ${(state.P).toFixed(0)} kPa`, cx - 70, cy - 20);
+            realCtx.fillText(`온도: ${(state.T).toFixed(0)} K (${(state.T - 273).toFixed(0)}℃)`, cx - 70, cy);
+        }
+
+        function renderSodaScene(progress) {
+            const width = realCanvas.width;
+            const height = realCanvas.height;
+            realCtx.clearRect(0, 0, width, height);
+
+            const cx = width / 2;
+            const cy = height / 2 + 30;
+
+            // Soda Bottle Outline
+            realCtx.strokeStyle = '#38bdf8';
+            realCtx.lineWidth = 3;
+            realCtx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+
+            realCtx.beginPath();
+            realCtx.moveTo(cx - 30, cy - 120);
+            realCtx.lineTo(cx + 30, cy - 120);
+            realCtx.lineTo(cx + 35, cy - 80);
+            realCtx.lineTo(cx + 60, cy - 20);
+            realCtx.lineTo(cx + 60, cy + 100);
+            realCtx.lineTo(cx - 60, cy + 100);
+            realCtx.lineTo(cx - 60, cy - 20);
+            realCtx.lineTo(cx - 35, cy - 80);
+            realCtx.closePath();
+            realCtx.fill();
+            realCtx.stroke();
+
+            // Dark Cola Liquid
+            realCtx.fillStyle = 'rgba(120, 53, 15, 0.85)';
+            realCtx.fillRect(cx - 55, cy - 10, 110, 105);
+
+            // Carbonation bubbles
+            realCtx.fillStyle = 'rgba(254, 215, 170, 0.7)';
+            particles.forEach((p, idx) => {
+                const py = cy + 90 - ((Date.now() * 0.05 + idx * 20) % 95);
+                const px = cx - 45 + p.x * 90;
+                realCtx.beginPath();
+                realCtx.arc(px, py, 2, 0, Math.PI * 2);
+                realCtx.fill();
+            });
+
+            // Bottle Cap Flying Off animation
+            const capY = cy - 128 - progress * 80;
+            const capRot = progress * Math.PI * 2;
+
+            realCtx.save();
+            realCtx.translate(cx, capY);
+            realCtx.rotate(capRot);
+            realCtx.fillStyle = '#ef4444';
+            realCtx.fillRect(-32, -8, 64, 14);
+            realCtx.restore();
+
+            // Condensation Fog / Cloud droplets at bottle neck
+            if (progress > 0.1) {
+                const fogOpacity = Math.sin(progress * Math.PI) * 0.85;
+                realCtx.fillStyle = `rgba(241, 245, 249, ${fogOpacity})`;
+
+                for (let f = 0; f < 12; f++) {
+                    const fx = cx + (Math.sin(f * 1.5 + Date.now() * 0.005) * 45);
+                    const fy = cy - 110 - f * 6 - progress * 30;
+                    realCtx.beginPath();
+                    realCtx.arc(fx, fy, 8 + f * 2, 0, Math.PI * 2);
+                    realCtx.fill();
+                }
+            }
+
+            // State Overlay
+            realCtx.fillStyle = '#f8fafc';
+            realCtx.font = 'bold 12px Pretendard';
+            realCtx.fillText(`온도: ${(state.T).toFixed(0)} K (${(state.T - 273).toFixed(0)}℃)`, cx - 50, cy + 40);
+            if (progress > 0.3) {
+                realCtx.fillStyle = '#38bdf8';
+                realCtx.fillText('단열 팽창 냉각! (수증기 응결)', cx - 75, cy - 140);
+            }
+        }
+
+        function renderCloudScene(progress) {
+            const width = realCanvas.width;
+            const height = realCanvas.height;
+            realCtx.clearRect(0, 0, width, height);
+
+            // Sky Background
+            const skyGrad = realCtx.createLinearGradient(0, 0, 0, height);
+            skyGrad.addColorStop(0, '#0f172a');
+            skyGrad.addColorStop(0.7, '#1e293b');
+            skyGrad.addColorStop(1, '#1e3a8a');
+            realCtx.fillStyle = skyGrad;
+            realCtx.fillRect(0, 0, width, height);
+
+            // Altitude Grid Lines
+            realCtx.strokeStyle = 'rgba(255,255,255,0.1)';
+            realCtx.lineWidth = 1;
+            for (let h = 50; h < height; h += 60) {
+                realCtx.beginPath();
+                realCtx.moveTo(0, h);
+                realCtx.lineTo(width, h);
+                realCtx.stroke();
+
+                const altMeters = Math.round((height - h) * 8);
+                realCtx.fillStyle = '#64748b';
+                realCtx.font = '10px Pretendard';
+                realCtx.fillText(`${altMeters}m`, 10, h - 3);
+            }
+
+            // Ground Level
+            realCtx.fillStyle = '#15803d';
+            realCtx.fillRect(0, height - 25, width, 25);
+
+            // Rising Air Parcel (Balloon/Sphere Expansion)
+            const parcelY = height - 50 - progress * (height - 120);
+            const parcelRadius = 22 + progress * 20;
+
+            // Air Parcel Boundary
+            realCtx.strokeStyle = 'rgba(96, 165, 250, 0.8)';
+            realCtx.lineWidth = 2;
+            realCtx.fillStyle = progress > 0.4 ? 'rgba(241, 245, 249, 0.85)' : 'rgba(59, 130, 246, 0.25)';
+
+            realCtx.beginPath();
+            realCtx.arc(width / 2, parcelY, parcelRadius, 0, Math.PI * 2);
+            realCtx.fill();
+            realCtx.stroke();
+
+            // Cloud Condensation inside Parcel if at/above Dew Point (LCL)
+            if (progress > 0.4) {
+                realCtx.fillStyle = '#f8fafc';
+                for (let c = 0; c < 5; c++) {
+                    const cx = width / 2 + Math.cos(c * 1.2) * (parcelRadius * 0.4);
+                    const cy = parcelY + Math.sin(c * 1.2) * (parcelRadius * 0.4);
+                    realCtx.beginPath();
+                    realCtx.arc(cx, cy, parcelRadius * 0.45, 0, Math.PI * 2);
+                    realCtx.fill();
+                }
+            }
+
+            // Text Label inside Parcel
+            realCtx.fillStyle = progress > 0.4 ? '#0f172a' : '#f8fafc';
+            realCtx.font = 'bold 11px Pretendard';
+            realCtx.textAlign = 'center';
+            realCtx.fillText(`T = ${(state.T).toFixed(0)}K (${(state.T - 273).toFixed(0)}℃)`, width / 2, parcelY - 3);
+            realCtx.fillText(progress > 0.4 ? '구름 생성!' : '상승 중', width / 2, parcelY + 12);
+            realCtx.textAlign = 'left';
+        }
+
+        function renderFoehnScene(progress) {
+            const width = realCanvas.width;
+            const height = realCanvas.height;
+            realCtx.clearRect(0, 0, width, height);
+
+            // Taebaek Mountain Range Profile
+            realCtx.fillStyle = '#1e293b';
+            realCtx.strokeStyle = '#475569';
+            realCtx.lineWidth = 3;
+
+            realCtx.beginPath();
+            realCtx.moveTo(0, height - 20);
+            realCtx.lineTo(60, height - 20);
+            realCtx.lineTo(width * 0.5, 70);
+            realCtx.lineTo(width - 40, height - 20);
+            realCtx.lineTo(width, height - 20);
+            realCtx.lineTo(width, height);
+            realCtx.lineTo(0, height);
+            realCtx.closePath();
+            realCtx.fill();
+            realCtx.stroke();
+
+            // East Sea Water
+            realCtx.fillStyle = '#0284c7';
+            realCtx.fillRect(0, height - 20, 60, 20);
+
+            // Air Parcel trajectory over mountain
+            let px, py, isDescending = false;
+            if (progress <= 0.5) {
+                const t = progress / 0.5;
+                px = 50 + t * (width * 0.5 - 50);
+                py = (height - 40) - t * (height - 130);
+            } else {
+                const t = (progress - 0.5) / 0.5;
+                px = width * 0.5 + t * (width - 100 - width * 0.5);
+                py = 70 + t * (height - 130);
+                isDescending = true;
+            }
+
+            // Air Parcel Color
+            const parcelColor = isDescending ? 'rgba(239, 68, 68, 0.8)' : 'rgba(14, 165, 233, 0.8)';
+            const radius = isDescending ? (28 - (progress - 0.5) * 14) : (20 + progress * 16);
+
+            realCtx.fillStyle = parcelColor;
+            realCtx.beginPath();
+            realCtx.arc(px, py, radius, 0, Math.PI * 2);
+            realCtx.fill();
+
+            // Rain on East slope
+            if (progress > 0.2 && progress < 0.52) {
+                realCtx.strokeStyle = '#38bdf8';
+                realCtx.lineWidth = 1.5;
+                for (let r = 0; r < 6; r++) {
+                    const rx = px - 15 + r * 6;
+                    realCtx.beginPath();
+                    realCtx.moveTo(rx, py + 10);
+                    realCtx.lineTo(rx - 5, py + 25);
+                    realCtx.stroke();
+                }
+            }
+
+            // Text Labels
+            realCtx.fillStyle = '#f8fafc';
+            realCtx.font = 'bold 11px Pretendard';
+            realCtx.fillText('동해 (습한 공기 20℃)', 10, height - 30);
+            realCtx.fillText('영서 지방 (높새바람 25℃)', width - 135, height - 30);
+
+            if (Math.abs(progress - 0.5) < 0.02) {
+                realCtx.fillStyle = '#f59e0b';
+                realCtx.font = 'bold 12px Pretendard';
+                realCtx.fillText('📍 산 정상 도착! (10℃ - 2단계 버튼 클릭)', px - 110, py - radius - 20);
+            }
+
+            realCtx.fillStyle = isDescending ? '#fca5a5' : '#93c5fd';
+            realCtx.font = 'bold 11px Pretendard';
+            realCtx.fillText(isDescending ? '단열 압축 (고온 건조!)' : '단열 팽창 (비 내림)', px - 40, py - radius - 8);
+        }
+
+        function renderIgniterScene(progress) {
+            const width = realCanvas.width;
+            const height = realCanvas.height;
+            realCtx.clearRect(0, 0, width, height);
+
+            const cx = width / 2;
+            const topY = 50;
+            const cylH = height - 100;
+            const cylW = 80;
+
+            // Acrylic Cylinder Outer Tube
+            realCtx.strokeStyle = 'rgba(148, 163, 184, 0.8)';
+            realCtx.lineWidth = 4;
+            realCtx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+
+            realCtx.beginPath();
+            realCtx.rect(cx - cylW / 2, topY, cylW, cylH);
+            realCtx.fill();
+            realCtx.stroke();
+
+            // Cotton Fluff at bottom
+            const cottonColor = state.T > state.igniter.T_ignite ? '#ef4444' : '#f8fafc';
+            realCtx.fillStyle = cottonColor;
+            realCtx.beginPath();
+            realCtx.ellipse(cx, topY + cylH - 15, 25, 10, 0, 0, Math.PI * 2);
+            realCtx.fill();
+
+            // Moving Piston Rod
+            const pistonY = topY + 10 + progress * (cylH - 45);
+
+            // Handle Rod
+            realCtx.fillStyle = '#64748b';
+            realCtx.fillRect(cx - 6, 10, 12, pistonY - 10);
+            realCtx.fillStyle = '#e2e8f0';
+            realCtx.fillRect(cx - 30, 10, 60, 15);
+
+            // Piston Seal
+            realCtx.fillStyle = '#0284c7';
+            realCtx.fillRect(cx - cylW / 2 + 2, pistonY, cylW - 4, 18);
+
+            // Gas particles inside compressed space with dynamic motion scaling with temperature
+            const minY = pistonY + 20;
+            const maxY = topY + cylH - 12;
+            const spaceH = Math.max(5, maxY - minY);
+            const speedFactor = Math.sqrt(state.T / 293) * 2.0;
+
+            realCtx.fillStyle = '#60a5fa';
+            particles.forEach(p => {
+                // Update position based on velocity & temperature-dependent speed factor
+                p.x += p.vx * 0.006 * speedFactor;
+                p.y += p.vy * 0.006 * speedFactor;
+
+                // Bounce at boundaries
+                if (p.x < 0) { p.x = 0; p.vx *= -1; }
+                if (p.x > 1) { p.x = 1; p.vx *= -1; }
+                if (p.y < 0) { p.y = 0; p.vy *= -1; }
+                if (p.y > 1) { p.y = 1; p.vy *= -1; }
+
+                const px = cx - cylW / 2 + 8 + p.x * (cylW - 16);
+                const py = minY + p.y * spaceH;
+
+                realCtx.beginPath();
+                realCtx.arc(px, py, 2.5, 0, Math.PI * 2);
+                realCtx.fill();
+            });
+
+            // Heat dissipation visualizer if slow mode (Heat loss Q < 0)
+            if (state.igniterMode === 'slow' && progress > 0.1) {
+                realCtx.strokeStyle = 'rgba(56, 189, 248, 0.8)';
+                realCtx.lineWidth = 2;
+                for (let side of [-1, 1]) {
+                    for (let h = 0; h < 3; h++) {
+                        const wy = pistonY + 25 + h * 25;
+                        if (wy < topY + cylH - 10) {
+                            realCtx.beginPath();
+                            const wx = cx + side * (cylW / 2 + 4);
+                            realCtx.moveTo(wx, wy);
+                            realCtx.quadraticCurveTo(wx + side * 15, wy - 5, wx + side * 20, wy + 5);
+                            realCtx.stroke();
+                        }
+                    }
+                }
+            }
+
+            // Fire Ignition Explosion Effect at bottom!
+            if (state.T > state.igniter.T_ignite) {
+                for (let spark = 0; spark < 15; spark++) {
+                    const sx = cx + (Math.random() - 0.5) * 50;
+                    const sy = topY + cylH - 15 + (Math.random() - 0.5) * 20;
+                    realCtx.fillStyle = Math.random() > 0.5 ? '#ef4444' : '#f59e0b';
+                    realCtx.beginPath();
+                    realCtx.arc(sx, sy, Math.random() * 6 + 2, 0, Math.PI * 2);
+                    realCtx.fill();
+                }
+                realCtx.fillStyle = '#f59e0b';
+                realCtx.font = 'bold 13px Pretendard';
+                realCtx.fillText('솜 발화 성공! (불꽃 발생)', cx - 65, topY + cylH + 25);
+            } else if (state.igniterMode === 'slow' && progress > 0.7) {
+                realCtx.fillStyle = '#38bdf8';
+                realCtx.font = 'bold 12px Pretendard';
+                realCtx.fillText('발화 실패 (열 방출 Q < 0)', cx - 65, topY + cylH + 25);
+            }
+        }
+
+        // --- Render Function for Right Canvas: P-V Diagram ---
+
+        function renderPVDiagram() {
+            const width = pvCanvas.width;
+            const height = pvCanvas.height;
+            pvCtx.clearRect(0, 0, width, height);
+
+            const padL = 50, padR = 25, padT = 25, padB = 40;
+            const graphW = width - padL - padR;
+            const graphH = height - padT - padB;
+
+            // Tab-specific axis limits for optimal visual scaling
+            let minP = 0, maxP = 1000, minV = 0, maxV = 20;
+            let stepP = 200, stepV = 5;
+
+            if (state.currentTab === 'cooker') {
+                minP = 0; maxP = 160; stepP = 40;
+                minV = 0; maxV = 16; stepV = 4;
+            } else if (state.currentTab === 'soda') {
+                minP = 0; maxP = 360; stepP = 90;
+                minV = 0; maxV = 20; stepV = 5;
+            } else if (state.currentTab === 'cloud') {
+                minP = 0; maxP = 120; stepP = 30;
+                minV = 0; maxV = 16; stepV = 4;
+            } else if (state.currentTab === 'foehn') {
+                minP = 0; maxP = 130; stepP = 30;
+                minV = 0; maxV = 15; stepV = 3;
+            } else if (state.currentTab === 'igniter') {
+                minP = 0; maxP = 1400; stepP = 350;
+                minV = 0; maxV = 14; stepV = 3;
+            }
+
+            const toX = (V) => padL + ((V - minV) / (maxV - minV)) * graphW;
+            const toY = (P) => padT + graphH - ((P - minP) / (maxP - minP)) * graphH;
+
+            // 1. Grid Lines
+            pvCtx.strokeStyle = '#1e293b';
+            pvCtx.lineWidth = 1;
+            pvCtx.beginPath();
+            for (let p = minP; p <= maxP; p += stepP) {
+                const y = toY(p);
+                pvCtx.moveTo(padL, y);
+                pvCtx.lineTo(width - padR, y);
+            }
+            for (let v = minV; v <= maxV; v += stepV) {
+                const x = toX(v);
+                pvCtx.moveTo(x, padT);
+                pvCtx.lineTo(x, height - padB);
+            }
+            pvCtx.stroke();
+
+            // Axis Number Labels
+            pvCtx.fillStyle = '#64748b';
+            pvCtx.font = '9px Pretendard';
+            pvCtx.textAlign = 'right';
+            for (let p = minP; p <= maxP; p += stepP) {
+                const y = toY(p);
+                pvCtx.fillText(`${p}`, padL - 6, y + 3);
+            }
+            pvCtx.textAlign = 'center';
+            for (let v = minV; v <= maxV; v += stepV) {
+                const x = toX(v);
+                pvCtx.fillText(`${v}`, x, height - padB + 14);
+            }
+
+            // Axes Titles
+            pvCtx.fillStyle = '#94a3b8';
+            pvCtx.font = 'bold 10px Pretendard';
+            pvCtx.textAlign = 'right';
+            pvCtx.fillText('V (L)', width - padR, height - padB + 28);
+            pvCtx.textAlign = 'left';
+            pvCtx.fillText('P (kPa)', padL - 40, padT - 10);
+
+            // 2. Reference Isotherms when checked
+            const showIsotherms = document.getElementById('chkShowIsotherms')?.checked;
+            if (showIsotherms) {
+                const isothermsToDraw = [];
+
+                if (state.currentTab === 'cooker') {
+                    isothermsToDraw.push({ C: 100 * 10, color: 'rgba(56, 189, 248, 0.75)', label: 'T_시작 (300K/27℃)', targetV: 12.0 });
+                    isothermsToDraw.push({ C: 131 * 10, color: 'rgba(245, 158, 11, 0.75)', label: 'T_끝 (393K/120℃)', targetV: 7.0 });
+                } else if (state.currentTab === 'soda') {
+                    isothermsToDraw.push({ C: 300 * 8, color: 'rgba(56, 189, 248, 0.75)', label: 'T_시작 (293K/20℃)', targetV: 14.0 });
+                    isothermsToDraw.push({ C: 100 * 17.5, color: 'rgba(147, 197, 253, 0.75)', label: 'T_끝 (214K/-59℃)', targetV: 17.5 });
+                } else if (state.currentTab === 'cloud') {
+                    isothermsToDraw.push({ C: 100 * 10, color: 'rgba(56, 189, 248, 0.75)', label: 'T_시작 (298K/25℃)', targetV: 8.5 });
+                    isothermsToDraw.push({ C: 80 * 11.2, color: 'rgba(56, 189, 248, 0.5)', label: 'T_이슬점 (285K/12℃)', targetV: 11.0 });
+                    isothermsToDraw.push({ C: 69 * 13, color: 'rgba(147, 197, 253, 0.75)', label: 'T_상공 (268K/-5℃)', targetV: 13.5 });
+                } else if (state.currentTab === 'foehn') {
+                    isothermsToDraw.push({ C: 1000 * (283 / 293), color: 'rgba(14, 165, 233, 0.85)', label: 'T_정상 (283K/10℃)', targetV: 12.5 });
+                    isothermsToDraw.push({ C: 1000, color: 'rgba(56, 189, 248, 0.85)', label: 'T_동해 (293K/20℃)', targetV: 10.5 });
+                    isothermsToDraw.push({ C: 1000 * (298 / 293), color: 'rgba(245, 158, 11, 0.85)', label: 'T_영서 (298K/25℃)', targetV: 8.5 });
+                } else if (state.currentTab === 'igniter') {
+                    isothermsToDraw.push({ C: 100 * 12, color: 'rgba(56, 189, 248, 0.75)', label: 'T_시작 (293K/20℃)', targetV: 10.0 });
+                    isothermsToDraw.push({ C: 100 * Math.pow(12 / 2.0, 1.4) * 2.0 * (520 / 600), color: 'rgba(239, 68, 68, 0.5)', label: 'T_발화점 (520K/247℃)', targetV: 5.0 });
+                    if (state.igniterMode === 'slow') {
+                        isothermsToDraw.push({ C: 100 * Math.pow(12 / 2.0, 1.07) * 2.0, color: 'rgba(56, 189, 248, 0.75)', label: 'T_압축 (320K/47℃)', targetV: 3.0 });
+                    } else {
+                        isothermsToDraw.push({ C: 100 * Math.pow(12 / 2.0, 1.4) * 2.0, color: 'rgba(245, 158, 11, 0.75)', label: 'T_압축 (600K/327℃)', targetV: 3.0 });
+                    }
+                }
+
+                isothermsToDraw.forEach(iso => {
+                    pvCtx.strokeStyle = iso.color;
+                    pvCtx.lineWidth = 1.5;
+                    pvCtx.setLineDash([4, 4]);
+                    pvCtx.beginPath();
+                    let started = false;
+                    let labelX = 0, labelY = 0;
+                    const targetV = iso.targetV || 0;
+                    let minDiff = 999;
+
+                    for (let v = 0.5; v <= maxV; v += 0.1) {
+                        const p = iso.C / v;
+                        if (p >= minP && p <= maxP) {
+                            const x = toX(v);
+                            const y = toY(p);
+                            if (!started) { pvCtx.moveTo(x, y); started = true; }
+                            else { pvCtx.lineTo(x, y); }
+
+                            if (targetV > 0) {
+                                const diff = Math.abs(v - targetV);
+                                if (diff < minDiff && x < width - padR - 60 && y > padT + 15 && y < height - padB - 10) {
+                                    minDiff = diff;
+                                    labelX = x;
+                                    labelY = y;
+                                }
+                            } else if (x < width - padR - 70 && y > padT + 15 && y < height - padB - 10) {
+                                labelX = x;
+                                labelY = y;
+                            }
+                        }
+                    }
+                    pvCtx.stroke();
+                    pvCtx.setLineDash([]);
+
+                    if (labelX > 0 && labelY > 0) {
+                        pvCtx.fillStyle = iso.color;
+                        pvCtx.font = 'bold 9px Pretendard';
+                        pvCtx.textAlign = 'left';
+                        pvCtx.fillText(iso.label, labelX + 4, labelY - 3);
+                    }
+                });
+            }
+
+            // 3. Draw Path & Area under curve
+            pvCtx.strokeStyle = '#3b82f6';
+            pvCtx.lineWidth = 3;
+            pvCtx.beginPath();
+
+            let points = [];
+            const steps = 30;
+
+            for (let i = 0; i <= steps; i++) {
+                const t = (i / steps) * state.progress;
+                let stP = state.P, stV = state.V;
+
+                if (state.currentTab === 'cooker') {
+                    stV = 10;
+                    stP = 100 + t * 31;
+                } else if (state.currentTab === 'soda') {
+                    stV = 8 + t * 9.5;
+                    stP = 300 * Math.pow(8 / stV, 1.4);
+                } else if (state.currentTab === 'cloud') {
+                    stV = 10 + t * 3.0;
+                    stP = 100 * Math.pow(10 / stV, 1.4);
+                } else if (state.currentTab === 'foehn') {
+                    if (t <= 0.5) {
+                        const subT = t / 0.5;
+                        stV = 10 + subT * 2.07;
+                        const stT = 293 - subT * 10;
+                        stP = 100 * (10 / stV) * (stT / 293);
+                    } else {
+                        const subT = (t - 0.5) / 0.5;
+                        stV = 12.07 - subT * 1.90;
+                        const stT = 283 + subT * 15;
+                        stP = 80 * (12.07 / stV) * (stT / 283);
+                    }
+                } else if (state.currentTab === 'igniter') {
+                    stV = 12 - t * 10.0;
+                    const gammaEff = state.igniterMode === 'slow' ? 1.07 : 1.4;
+                    stP = 100 * Math.pow(12 / stV, gammaEff);
+                }
+
+                points.push({ P: stP, V: stV });
+
+                const x = toX(stV);
+                const y = toY(stP);
+                if (i === 0) pvCtx.moveTo(x, y);
+                else pvCtx.lineTo(x, y);
+            }
+            pvCtx.stroke();
+
+            // Shaded Work Area (W)
+            if (points.length > 1 && state.currentTab !== 'cooker') {
+                pvCtx.fillStyle = 'rgba(59, 130, 246, 0.18)';
+                pvCtx.beginPath();
+                pvCtx.moveTo(toX(points[0].V), toY(minP));
+                points.forEach(pt => pvCtx.lineTo(toX(pt.V), toY(pt.P)));
+                pvCtx.lineTo(toX(points[points.length - 1].V), toY(minP));
+                pvCtx.closePath();
+                pvCtx.fill();
+            }
+
+            // Current State Moving Dot
+            if (points.length > 0) {
+                const cur = points[points.length - 1];
+                const cx = toX(cur.V);
+                const cy = toY(cur.P);
+
+                pvCtx.fillStyle = 'rgba(239, 68, 68, 0.35)';
+                pvCtx.beginPath();
+                pvCtx.arc(cx, cy, 10, 0, Math.PI * 2);
+                pvCtx.fill();
+
+                pvCtx.fillStyle = '#ef4444';
+                pvCtx.beginPath();
+                pvCtx.arc(cx, cy, 5, 0, Math.PI * 2);
+                pvCtx.fill();
+            }
+        }
+
+        // --- Core Simulation Physics & State Updates ---
+
+        function updatePhysics() {
+            const t = state.progress;
+
+            if (state.currentTab === 'cooker') {
+                state.V = 10;
+                state.P = 100 + t * 31;
+                state.T = 300 + t * 93; // 27°C -> 120°C
+
+                state.dU = 1.5 * 1.0 * R * (state.T - 300);
+                state.W = 0;
+                state.Q = state.dU;
+
+            } else if (state.currentTab === 'soda') {
+                state.V = 8 + t * 9.5;
+                state.P = 300 * Math.pow(8 / state.V, 1.4);
+                state.T = 293 * Math.pow(8 / state.V, 0.4); // 20°C -> -59°C
+
+                state.Q = 0;
+                state.dU = 1.5 * 1.0 * R * (state.T - 293);
+                state.W = -state.dU;
+
+            } else if (state.currentTab === 'cloud') {
+                state.V = 10 + t * 3.0;
+                state.P = 100 * Math.pow(10 / state.V, 1.4);
+                state.T = 298 * Math.pow(10 / state.V, 0.4); // 25°C -> -5°C
+
+                state.Q = 0;
+                state.dU = 1.5 * 1.0 * R * (state.T - 298);
+                state.W = -state.dU;
+
+            } else if (state.currentTab === 'foehn') {
+                let q1 = 0, du1 = 0, w1 = 0;
+                let q2 = 0, du2 = 0, w2 = 0;
+
+                if (t <= 0.5) {
+                    const subT = t / 0.5;
+                    state.V = 10 + subT * 2.07;
+                    state.T = 293 - subT * 10; // 20°C -> 10°C (Moist ascent)
+                    state.P = 100 * (10 / state.V) * (state.T / 293);
+                    
+                    du1 = 1.5 * 1.0 * R * (state.T - 293);
+                    w1 = -du1;
+                    q1 = 0;
+
+                    state.dU = du1;
+                    state.W = w1;
+                } else {
+                    const subT = (t - 0.5) / 0.5;
+                    state.V = 12.07 - subT * 1.90;
+                    state.T = 283 + subT * 15; // 10°C -> 25°C (Dry descent)
+                    state.P = 80 * (12.07 / state.V) * (state.T / 283);
+
+                    du1 = 1.5 * 1.0 * R * (283 - 293); // -125 J (Stage 1 completed)
+                    w1 = -du1; // +125 J
+
+                    du2 = 1.5 * 1.0 * R * (state.T - 283);
+                    w2 = -du2;
+
+                    state.dU = du1 + du2;
+                    state.W = w1 + w2;
+                }
+                state.Q = 0;
+
+                // Update Foehn 2-Stage Cards
+                const cardQ1 = document.getElementById('cardQVal1');
+                if (cardQ1) {
+                    cardQ1.innerText = `${q1 > 0 ? '+' : ''}${q1.toFixed(0)} J`;
+                    document.getElementById('cardUVal1').innerText = `${du1 > 0 ? '+' : ''}${du1.toFixed(0)} J`;
+                    document.getElementById('cardWVal1').innerText = `${w1 > 0 ? '+' : ''}${w1.toFixed(0)} J`;
+
+                    document.getElementById('cardQVal2').innerText = `${q2 > 0 ? '+' : ''}${q2.toFixed(0)} J`;
+                    document.getElementById('cardUVal2').innerText = `${du2 > 0 ? '+' : ''}${du2.toFixed(0)} J`;
+                    document.getElementById('cardWVal2').innerText = `${w2 > 0 ? '+' : ''}${w2.toFixed(0)} J`;
+
+                    const uBadge1 = document.getElementById('cardUBadge1');
+                    if (du1 < -0.5) {
+                        uBadge1.innerText = '온도 하강 (-)';
+                        uBadge1.className = 'text-[8px] px-1 py-0.5 rounded bg-amber-600/20 text-amber-300 font-bold';
+                    } else if (du1 > 0.5) {
+                        uBadge1.innerText = '온도 상승 (+)';
+                        uBadge1.className = 'text-[8px] px-1 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold';
+                    } else {
+                        uBadge1.innerText = '등온 (0)';
+                        uBadge1.className = 'text-[8px] px-1 py-0.5 rounded bg-slate-800 text-slate-400 font-bold';
+                    }
+
+                    const wBadge1 = document.getElementById('cardWBadge1');
+                    if (w1 > 0.5) {
+                        wBadge1.innerText = '팽창/일 함 (+)';
+                        wBadge1.className = 'text-[8px] px-1 py-0.5 rounded bg-blue-500/20 text-blue-300 font-bold';
+                    } else {
+                        wBadge1.innerText = '대기 (0)';
+                        wBadge1.className = 'text-[8px] px-1 py-0.5 rounded bg-slate-800 text-slate-400 font-bold';
+                    }
+
+                    const uBadge2 = document.getElementById('cardUBadge2');
+                    if (du2 > 0.5) {
+                        uBadge2.innerText = '온도 상승 (+)';
+                        uBadge2.className = 'text-[8px] px-1 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold';
+                    } else if (du2 < -0.5) {
+                        uBadge2.innerText = '온도 하강 (-)';
+                        uBadge2.className = 'text-[8px] px-1 py-0.5 rounded bg-amber-600/20 text-amber-300 font-bold';
+                    } else {
+                        uBadge2.innerText = '대기 (0)';
+                        uBadge2.className = 'text-[8px] px-1 py-0.5 rounded bg-slate-800 text-slate-400 font-bold';
+                    }
+
+                    const wBadge2 = document.getElementById('cardWBadge2');
+                    if (w2 < -0.5) {
+                        wBadge2.innerText = '압축/일 받음 (-)';
+                        wBadge2.className = 'text-[8px] px-1 py-0.5 rounded bg-sky-500/20 text-sky-300 font-bold';
+                    } else {
+                        wBadge2.innerText = '대기 (0)';
+                        wBadge2.className = 'text-[8px] px-1 py-0.5 rounded bg-slate-800 text-slate-400 font-bold';
+                    }
+
+                    const box1 = document.getElementById('foehnStage1Box');
+                    const box2 = document.getElementById('foehnStage2Box');
+                    if (box1 && box2) {
+                        if (t <= 0.5) {
+                            box1.className = 'p-2 rounded-xl bg-slate-900/90 border-2 border-sky-500/80 shadow-lg shadow-sky-500/10 transition-all';
+                            box2.className = 'p-2 rounded-xl bg-slate-900/90 border border-slate-800 opacity-50 transition-all';
+                        } else {
+                            box1.className = 'p-2 rounded-xl bg-slate-900/90 border border-slate-800 opacity-70 transition-all';
+                            box2.className = 'p-2 rounded-xl bg-slate-900/90 border-2 border-orange-500/80 shadow-lg shadow-orange-500/10 transition-all';
+                        }
+                    }
+                }
+
+            } else if (state.currentTab === 'igniter') {
+                state.V = 12 - t * 10.0;
+                if (state.igniterMode === 'slow') {
+                    const gammaEff = 1.07;
+                    state.P = 100 * Math.pow(12 / state.V, gammaEff);
+                    state.T = 293 * Math.pow(12 / state.V, gammaEff - 1); // 20°C -> 59°C
+
+                    state.dU = 1.5 * 1.0 * R * (state.T - 293);
+                    // Thermodynamic work calculation for polytropic heat loss compression
+                    state.W = (state.P * state.V - 1200) / (1 - gammaEff); 
+                    state.Q = state.dU + state.W; // Q < 0 (Heat loss to surroundings)
+                } else {
+                    state.P = 100 * Math.pow(12 / state.V, 1.4);
+                    state.T = 293 * Math.pow(12 / state.V, 0.4); // 20°C -> 327°C
+
+                    state.Q = 0;
+                    state.dU = 1.5 * 1.0 * R * (state.T - 293);
+                    state.W = -state.dU;
+                }
+            }
+
+            // Update DOM Cards for Standard Tabs
+            const valP = document.getElementById('valP');
+            if (valP) valP.innerText = `${state.P.toFixed(0)} kPa`;
+            const valV = document.getElementById('valV');
+            if (valV) valV.innerText = `${state.V.toFixed(1)} L`;
+            const valT = document.getElementById('valT');
+            if (valT) valT.innerText = `${state.T.toFixed(0)} K (${(state.T - 273).toFixed(0)}℃)`;
+
+            const cQVal = document.getElementById('cardQVal');
+            if (cQVal) {
+                cQVal.innerText = `${state.Q > 0 ? '+' : ''}${state.Q.toFixed(0)} J`;
+                document.getElementById('cardUVal').innerText = `${state.dU > 0 ? '+' : ''}${state.dU.toFixed(0)} J`;
+                document.getElementById('cardWVal').innerText = `${state.W > 0 ? '+' : ''}${state.W.toFixed(0)} J`;
+
+                // Dynamic Sign Badges
+                const qBadge = document.getElementById('cardQBadge');
+                if (state.Q > 1) {
+                    qBadge.innerText = '열 흡수 (+)';
+                    qBadge.className = 'text-[9px] px-1 py-0.5 rounded bg-red-500/20 text-red-300 font-bold';
+                } else if (state.Q < -1) {
+                    qBadge.innerText = '열 방출 (-)';
+                    qBadge.className = 'text-[9px] px-1 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-bold';
+                } else {
+                    qBadge.innerText = '단열 (0)';
+                    qBadge.className = 'text-[9px] px-1 py-0.5 rounded bg-slate-800 text-slate-400 font-bold';
+                }
+
+                const uBadge = document.getElementById('cardUBadge');
+                if (state.dU > 1) {
+                    uBadge.innerText = '온도 상승 (+)';
+                    uBadge.className = 'text-[9px] px-1 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold';
+                } else if (state.dU < -1) {
+                    uBadge.innerText = '온도 하강 (-)';
+                    uBadge.className = 'text-[9px] px-1 py-0.5 rounded bg-amber-600/20 text-amber-300 font-bold';
+                } else {
+                    uBadge.innerText = '등온 (0)';
+                    uBadge.className = 'text-[9px] px-1 py-0.5 rounded bg-slate-800 text-slate-400 font-bold';
+                }
+
+                const wBadge = document.getElementById('cardWBadge');
+                if (state.W > 1) {
+                    wBadge.innerText = '팽창/일 함 (+)';
+                    wBadge.className = 'text-[9px] px-1 py-0.5 rounded bg-blue-500/20 text-blue-300 font-bold';
+                } else if (state.W < -1) {
+                    wBadge.innerText = '압축/일 받음 (-)';
+                    wBadge.className = 'text-[9px] px-1 py-0.5 rounded bg-sky-500/20 text-sky-300 font-bold';
+                } else {
+                    wBadge.innerText = '등적 (0)';
+                    wBadge.className = 'text-[9px] px-1 py-0.5 rounded bg-slate-800 text-slate-400 font-bold';
+                }
+            }
+        }
+
+        // --- Main Animation Loop ---
+
+        function animateLoop() {
+            if (state.isPlaying) {
+                state.progress += 0.005 * state.speed;
+
+                // Foehn wind pause at mountain peak (progress = 0.5)
+                if (state.currentTab === 'foehn' && state.progress >= 0.5 && !state.foehnPeakReached) {
+                    state.progress = 0.5;
+                    state.isPlaying = false;
+                    state.foehnPeakReached = true;
+                    document.getElementById('iconAction').className = 'fa-solid fa-play';
+                    document.getElementById('txtAction').innerText = '2단계: 산 넘어가기 (단열 압축)';
+                }
+
+                if (state.progress >= 1.0) {
+                    state.progress = 1.0;
+                    state.isPlaying = false;
+                    document.getElementById('iconAction').className = 'fa-solid fa-play';
+                    document.getElementById('txtAction').innerText = '다시 실행하기';
+                }
+            }
+
+            updatePhysics();
+
+            // Render Current Active Real-world Module
+            if (state.currentTab === 'cooker') renderCookerScene(state.progress);
+            else if (state.currentTab === 'soda') renderSodaScene(state.progress);
+            else if (state.currentTab === 'cloud') renderCloudScene(state.progress);
+            else if (state.currentTab === 'foehn') renderFoehnScene(state.progress);
+            else if (state.currentTab === 'igniter') renderIgniterScene(state.progress);
+
+            // Render Right P-V Diagram
+            renderPVDiagram();
+
+            requestAnimationFrame(animateLoop);
+        }
+
+        // --- UI Events and Navigation ---
+
+        function switchTab(tabKey) {
+            state.currentTab = tabKey;
+            state.progress = 0;
+            state.isPlaying = false;
+            state.foehnPeakReached = false;
+
+            // Active Tab Styles
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('tab-active'));
+            const activeBtn = document.getElementById(`tab${tabKey.charAt(0).toUpperCase() + tabKey.slice(1)}`);
+            if (activeBtn) activeBtn.classList.add('tab-active');
+
+            const spec = moduleSpecs[tabKey];
+
+            // Dynamic Cards Layout for Foehn vs Other Tabs
+            const cardContainer = document.getElementById('energyCardsContainer');
+            if (tabKey === 'foehn') {
+                cardContainer.innerHTML = `
+                    <div class="space-y-2">
+                        <!-- Stage 1 Section -->
+                        <div id="foehnStage1Box" class="p-2 rounded-xl bg-slate-900/90 border border-slate-700/80 transition-all">
+                            <div class="text-[11px] font-bold text-sky-400 mb-1.5 flex justify-between items-center">
+                                <span>1구간: 동해 → 정상 (단열 팽창)</span>
+                                <span class="text-[9px] font-normal text-slate-400 font-mono">20℃ → 10℃</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-1.5 text-center">
+                                <div class="p-1.5 rounded-lg bg-slate-950/80 border border-red-500/20">
+                                    <div class="text-[9px] text-slate-400">열량 (\\(Q_1\\))</div>
+                                    <div id="cardQVal1" class="text-xs font-extrabold text-slate-300 font-mono my-0.5">0 J</div>
+                                    <div id="cardQBadge1" class="text-[8px] px-1 py-0.5 rounded bg-slate-800 text-slate-400 font-bold">단열 (0)</div>
+                                </div>
+                                <div class="p-1.5 rounded-lg bg-slate-950/80 border border-amber-500/20">
+                                    <div class="text-[9px] text-slate-400">내부에너지 (\\(\\Delta U_1\\))</div>
+                                    <div id="cardUVal1" class="text-xs font-extrabold text-amber-400 font-mono my-0.5">-125 J</div>
+                                    <div id="cardUBadge1" class="text-[8px] px-1 py-0.5 rounded bg-amber-600/20 text-amber-300 font-bold">온도 하강 (-)</div>
+                                </div>
+                                <div class="p-1.5 rounded-lg bg-slate-950/80 border border-blue-500/20">
+                                    <div class="text-[9px] text-slate-400">한 일 (\\(W_1\\))</div>
+                                    <div id="cardWVal1" class="text-xs font-extrabold text-blue-400 font-mono my-0.5">+125 J</div>
+                                    <div id="cardWBadge1" class="text-[8px] px-1 py-0.5 rounded bg-blue-500/20 text-blue-300 font-bold">팽창/일 함 (+)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stage 2 Section -->
+                        <div id="foehnStage2Box" class="p-2 rounded-xl bg-slate-900/90 border border-slate-700/80 transition-all">
+                            <div class="text-[11px] font-bold text-orange-400 mb-1.5 flex justify-between items-center">
+                                <span>2구간: 정상 → 영서 (단열 압축)</span>
+                                <span class="text-[9px] font-normal text-slate-400 font-mono">10℃ → 25℃</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-1.5 text-center">
+                                <div class="p-1.5 rounded-lg bg-slate-950/80 border border-red-500/20">
+                                    <div class="text-[9px] text-slate-400">열량 (\\(Q_2\\))</div>
+                                    <div id="cardQVal2" class="text-xs font-extrabold text-slate-300 font-mono my-0.5">0 J</div>
+                                    <div id="cardQBadge2" class="text-[8px] px-1 py-0.5 rounded bg-slate-800 text-slate-400 font-bold">단열 (0)</div>
+                                </div>
+                                <div class="p-1.5 rounded-lg bg-slate-950/80 border border-amber-500/20">
+                                    <div class="text-[9px] text-slate-400">내부에너지 (\\(\\Delta U_2\\))</div>
+                                    <div id="cardUVal2" class="text-xs font-extrabold text-amber-400 font-mono my-0.5">+187 J</div>
+                                    <div id="cardUBadge2" class="text-[8px] px-1 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">온도 상승 (+)</div>
+                                </div>
+                                <div class="p-1.5 rounded-lg bg-slate-950/80 border border-blue-500/20">
+                                    <div class="text-[9px] text-slate-400">한 일 (\\(W_2\\))</div>
+                                    <div id="cardWVal2" class="text-xs font-extrabold text-blue-400 font-mono my-0.5">-187 J</div>
+                                    <div id="cardWBadge2" class="text-[8px] px-1 py-0.5 rounded bg-sky-500/20 text-sky-300 font-bold">압축/일 받음 (-)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                cardContainer.innerHTML = `
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div class="p-2.5 rounded-xl bg-slate-900/90 border border-red-500/30">
+                            <div class="text-[10px] text-slate-400">열량 (\\(Q\\))</div>
+                            <div id="cardQVal" class="text-xs font-extrabold text-red-400 font-mono my-1">+116 J</div>
+                            <div id="cardQBadge" class="text-[9px] px-1 py-0.5 rounded bg-red-500/20 text-red-300 font-bold">
+                                열 흡수 (+)
+                            </div>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-slate-900/90 border border-amber-500/30">
+                            <div class="text-[10px] text-slate-400">내부에너지 (\\(\\Delta U\\))</div>
+                            <div id="cardUVal" class="text-xs font-extrabold text-amber-400 font-mono my-1">+116 J</div>
+                            <div id="cardUBadge" class="text-[9px] px-1 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">
+                                온도 상승 (+)
+                            </div>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-slate-900/90 border border-blue-500/30">
+                            <div class="text-[10px] text-slate-400">한 일 (\\(W\\))</div>
+                            <div id="cardWVal" class="text-xs font-extrabold text-blue-400 font-mono my-1">0 J</div>
+                            <div id="cardWBadge" class="text-[9px] px-1 py-0.5 rounded bg-slate-800 text-slate-400 font-bold">
+                                일 안 함 (0)
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Update UI Header & Explanations
+            document.getElementById('realTitle').innerText = spec.title;
+            document.getElementById('realIcon').className = `fa-solid ${spec.icon} ${spec.iconColor}`;
+            document.getElementById('realBadge').innerHTML = spec.badge;
+            document.getElementById('pvProcessName').innerHTML = spec.badge;
+
+            document.getElementById('txtAction').innerText = spec.actionTxt;
+            document.getElementById('iconAction').className = 'fa-solid fa-play';
+
+            document.getElementById('explainContent').innerHTML = spec.explain;
+            document.getElementById('explainTip').innerHTML = spec.tip;
+
+            // Render Math Equations with KaTeX
+            const eqContainer = document.getElementById('headerEquation');
+            eqContainer.innerHTML = `\\( ${spec.equation} \\)`;
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '\\(', right: '\\)', display: false},
+                        {left: '\\[', right: '\\]', display: true}
+                    ],
+                    throwOnError: false
+                });
+            }
+
+            // Update Module Controls Panel
+            const ctrlBox = document.getElementById('moduleControls');
+            if (tabKey === 'cooker') {
+                ctrlBox.innerHTML = `
+                    <span class="text-slate-400">가열 세기:</span>
+                    <input type="range" id="sliderPower" min="1" max="3" value="2" class="w-20 h-1 bg-slate-700 rounded appearance-none accent-amber-500">
+                `;
+            } else if (tabKey === 'igniter') {
+                const mode = state.igniterMode || 'rapid';
+                ctrlBox.innerHTML = `
+                    <span class="text-slate-400">압축 속도:</span>
+                    <select id="selectIgniterSpeed" onchange="changeIgniterMode(this.value)" class="bg-slate-800 text-amber-400 border border-slate-700 rounded px-1.5 py-0.5 cursor-pointer">
+                        <option value="rapid" ${mode === 'rapid' ? 'selected' : ''}>매우 빠르게 (단열)</option>
+                        <option value="slow" ${mode === 'slow' ? 'selected' : ''}>천천히 (열 손실)</option>
+                    </select>
+                `;
+            } else {
+                ctrlBox.innerHTML = `<span class="text-slate-400">속도:</span> <span class="text-blue-400 font-bold">1.0x (고정)</span>`;
+            }
+        }
+
+        function changeIgniterMode(mode) {
+            state.igniterMode = mode;
+            state.progress = 0;
+            state.isPlaying = false;
+            document.getElementById('iconAction').className = 'fa-solid fa-play';
+            document.getElementById('txtAction').innerText = moduleSpecs.igniter.actionTxt;
+
+            if (mode === 'slow') {
+                document.getElementById('realBadge').innerHTML = '열 손실 압축 (\\(Q < 0\\))';
+                document.getElementById('pvProcessName').innerHTML = '열 손실 압축 (\\(Q < 0\\))';
+                document.getElementById('explainTip').innerHTML = '천천히 압축하면 외부로 열이 빠져나가(\\(Q < 0\\)) 발화점에 도달하지 못해 불이 붙지 않습니다.';
+            } else {
+                document.getElementById('realBadge').innerHTML = moduleSpecs.igniter.badge;
+                document.getElementById('pvProcessName').innerHTML = moduleSpecs.igniter.badge;
+                document.getElementById('explainTip').innerHTML = moduleSpecs.igniter.tip;
+            }
+
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '\\(', right: '\\)', display: false},
+                        {left: '\\[', right: '\\]', display: true}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        function resizeCanvases() {
+            [realCanvas, pvCanvas].forEach(c => {
+                const rect = c.parentElement.getBoundingClientRect();
+                c.width = rect.width;
+                c.height = rect.height;
+            });
+        }
+
+        window.addEventListener('load', () => {
+            resizeCanvases();
+            window.addEventListener('resize', resizeCanvases);
+
+            // Action Button Listener
+            const actionBtn = document.getElementById('btnAction');
+            actionBtn.addEventListener('click', () => {
+                if (state.progress >= 1.0) {
+                    state.progress = 0;
+                    state.foehnPeakReached = false;
+                }
+
+                state.isPlaying = !state.isPlaying;
+                const icon = document.getElementById('iconAction');
+                const txt = document.getElementById('txtAction');
+
+                if (state.isPlaying) {
+                    icon.className = 'fa-solid fa-pause';
+                    txt.innerText = '일시정지';
+                } else {
+                    icon.className = 'fa-solid fa-play';
+                    if (state.currentTab === 'foehn' && state.foehnPeakReached && state.progress < 1.0) {
+                        txt.innerText = '2단계: 산 넘어가기 (단열 압축)';
+                    } else if (state.currentTab === 'foehn' && state.progress < 0.5) {
+                        txt.innerText = '1단계: 정상으로 상승 (단열 팽창)';
+                    } else {
+                        txt.innerText = '계속 실행';
+                    }
+                }
+            });
+
+            // Reset Button Listener
+            document.getElementById('btnReset').addEventListener('click', () => {
+                state.progress = 0;
+                state.isPlaying = false;
+                state.foehnPeakReached = false;
+                document.getElementById('iconAction').className = 'fa-solid fa-play';
+                document.getElementById('txtAction').innerText = moduleSpecs[state.currentTab].actionTxt;
+            });
+
+            // Default Tab Initialization
+            switchTab('cooker');
+
+            // Start Main Loop
+            animateLoop();
+        });
+    </script>
+</body>
+</html>
